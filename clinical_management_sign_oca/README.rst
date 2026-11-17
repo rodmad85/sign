@@ -62,17 +62,25 @@ Configuration
    *Professional (Clinical)* tab of the employee form; it is printed on
    the clinical report layout (``clinical_management``).
 4. Set the **Signature Type** on each professional
-   (``clinical_management``): ``Image`` (default),
-   ``Digital Certificate`` or ``GOV.BR``. This module reads that choice
-   when creating the sign request.
-5. Install ``sign_oca_certificate_digital`` and/or ``sign_oca_govbr``
-   for the authenticated types. They are checked dynamically (no hard
-   dependency), but if the matching module is missing the request is
-   refused with a clear message instead of producing an unauthenticated
-   document.
+   (``clinical_management``): ``Image`` (default) or
+   ``Digital Certificate``. This module reads that choice when creating
+   the sign request.
+5. Install ``sign_oca_certificate_digital`` for the authenticated type.
+   It is checked dynamically (no hard dependency), but if it is missing
+   the request is refused with a clear message instead of producing an
+   unauthenticated document.
 6. For ``Digital Certificate``, register the A1 ``.pfx/.p12`` on the
    professional. The certificate password is requested on every emission
    by the ``clinical_management`` wizard and is never stored here.
+
+The **GOV.BR** option is intentionally absent. The Assinatura Eletrônica
+Avançada GOV.BR API and the Login Único ``client_id``/``client_secret``
+it depends on are restricted to public-sector services (Portaria SGD/MGI
+7.076/2024, domains such as ``gov.br``), so they are not available to a
+private clinic. ``sign_oca_govbr`` remains in this repository as an
+optional, unreferenced OIDC client; its flag is explicitly turned off on
+every request created by this module in case it is installed with a
+company-wide default.
 
 Usage
 =====
@@ -89,11 +97,11 @@ the report, with the responsible professional as signer and the
 request and sign it from the portal.
 
 The professional's **Signature Type** decides the request: with
-``Image`` both authentication flags are turned off (even if the company
-enables them by default); with ``Digital Certificate`` or ``GOV.BR`` the
-corresponding flag is turned on, so the signer must authenticate before
-signing. For the certificate type, the A1 password wizard is shown first
-and the request is only created after it is validated.
+``Image`` the authentication flags are turned off (even if the company
+enables them by default); with ``Digital Certificate`` the certificate
+flag is turned on, so the signer must authenticate before signing. For
+the certificate type, the A1 password wizard is shown first and the
+request is only created after it is validated.
 
 Once all signers have signed, the final PDF is copied to the **Signed
 Clinical Report** field on the *Signature* tab and the report is set to

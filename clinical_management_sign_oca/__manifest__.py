@@ -4,7 +4,7 @@
 {
     "name": "Clinical Management Sign Oca",
     "summary": "Electronic signature of clinical reports with Sign OCA",
-    "version": "18.0.2.0.0",
+    "version": "18.0.3.0.0",
     "license": "AGPL-3",
     "author": "Madooit,Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/sign",

@@ -148,16 +148,11 @@ class TestClinicalManagementSignOca(BaseCommon):
         action = self._send_for_signature()
         request = self.env["sign.oca.request"].browse(action["res_id"])
         self.assertTrue(request.require_certificate_authentication)
-        self.assertFalse(request.require_govbr_authentication)
+        if "require_govbr_authentication" in fields:
+            self.assertFalse(request.require_govbr_authentication)
 
-    def test_govbr_signature_enables_govbr_auth(self):
-        self.employee.signature_type = "govbr"
-        fields = self.env["sign.oca.request"]._fields
-        if "require_govbr_authentication" not in fields:
-            with self.assertRaises(ValidationError):
-                self._send_for_signature()
-            return
-        action = self._send_for_signature()
-        request = self.env["sign.oca.request"].browse(action["res_id"])
-        self.assertTrue(request.require_govbr_authentication)
-        self.assertFalse(request.require_certificate_authentication)
+    def test_signature_type_excludes_govbr(self):
+        """GOV.BR is not offered to a private clinic (public-sector API)."""
+        selection = dict(self.env["hr.employee"]._fields["signature_type"].selection)
+        self.assertNotIn("govbr", selection)
+        self.assertIn("certificate", selection)

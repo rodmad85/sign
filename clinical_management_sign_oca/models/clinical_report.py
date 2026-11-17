@@ -14,13 +14,21 @@ CLINICAL_ROLE = "clinical_management_sign_oca.sign_role_clinical_professional"
 # Signature type -> (field on sign.oca.request, module that provides it).
 # The fields are checked dynamically so the authentication modules stay
 # independent from each other and are not a hard dependency of this glue.
+# GOV.BR was removed from the professional's signature type: its API and
+# Login Unico credentials are restricted to public-sector services
+# (Portaria SGD/MGI 7.076/2024). The corresponding flag is kept here only
+# to be explicitly turned off for image/certificate requests, in case the
+# optional sign_oca_govbr module is installed with a company-wide default.
 SIGNATURE_AUTH_REQUIREMENTS = {
     "certificate": (
         "require_certificate_authentication",
         "sign_oca_certificate_digital",
     ),
-    "govbr": ("require_govbr_authentication", "sign_oca_govbr"),
 }
+SIGNATURE_AUTH_FIELDS = (
+    "require_certificate_authentication",
+    "require_govbr_authentication",
+)
 
 
 class HospitalClinicalReport(models.Model):
@@ -68,11 +76,14 @@ class HospitalClinicalReport(models.Model):
         return partner
 
     def _professional_signature_type(self):
-        """Return the professional's signature type (image on older installs)."""
+        """Return the professional's signature type (image on unknown values)."""
         self.ensure_one()
         if "signature_type" not in self.professional_id._fields:
             return "image"
-        return self.professional_id.signature_type or "image"
+        value = self.professional_id.signature_type or "image"
+        if value in SIGNATURE_AUTH_REQUIREMENTS or value == "image":
+            return value
+        return "image"
 
     def _signature_auth_vals(self, signature_type, request_model):
         """Map the signature type to the Sign OCA authentication flags."""
@@ -87,7 +98,7 @@ class HospitalClinicalReport(models.Model):
                 )
             )
         vals = {}
-        for field_name, _module in SIGNATURE_AUTH_REQUIREMENTS.values():
+        for field_name in SIGNATURE_AUTH_FIELDS:
             if field_name in request_model._fields:
                 vals[field_name] = False
         if requirement:
