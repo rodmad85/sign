@@ -396,9 +396,18 @@ the request.</li>
 <li>Upload the handwritten signature image of the professional on the
 <em>Professional (Clinical)</em> tab of the employee form; it is printed on
 the clinical report layout (<tt class="docutils literal">clinical_management</tt>).</li>
-<li>Optionally install <tt class="docutils literal">sign_oca_certificate_digital</tt> and/or
-<tt class="docutils literal">sign_oca_govbr</tt> to require an authenticated signature before the
-document can be signed.</li>
+<li>Set the <strong>Signature Type</strong> on each professional
+(<tt class="docutils literal">clinical_management</tt>): <tt class="docutils literal">Image</tt> (default),
+<tt class="docutils literal">Digital Certificate</tt> or <tt class="docutils literal">GOV.BR</tt>. This module reads that choice
+when creating the sign request.</li>
+<li>Install <tt class="docutils literal">sign_oca_certificate_digital</tt> and/or <tt class="docutils literal">sign_oca_govbr</tt>
+for the authenticated types. They are checked dynamically (no hard
+dependency), but if the matching module is missing the request is
+refused with a clear message instead of producing an unauthenticated
+document.</li>
+<li>For <tt class="docutils literal">Digital Certificate</tt>, register the A1 <tt class="docutils literal"><span class="pre">.pfx/.p12</span></tt> on the
+professional. The certificate password is requested on every emission
+by the <tt class="docutils literal">clinical_management</tt> wizard and is never stored here.</li>
 </ol>
 </div>
 <div class="section" id="usage">
@@ -412,6 +421,12 @@ Signature</strong>.</p>
 the report, with the responsible professional as signer and the
 <em>Healthcare Professional</em> role. Configure the signature fields, send the
 request and sign it from the portal.</p>
+<p>The professional’s <strong>Signature Type</strong> decides the request: with
+<tt class="docutils literal">Image</tt> both authentication flags are turned off (even if the company
+enables them by default); with <tt class="docutils literal">Digital Certificate</tt> or <tt class="docutils literal">GOV.BR</tt> the
+corresponding flag is turned on, so the signer must authenticate before
+signing. For the certificate type, the A1 password wizard is shown first
+and the request is only created after it is validated.</p>
 <p>Once all signers have signed, the final PDF is copied to the <strong>Signed
 Clinical Report</strong> field on the <em>Signature</em> tab and the report is set to
 <em>Done</em>. The existing signature requests are reachable from the smart

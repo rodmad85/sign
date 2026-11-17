@@ -11,6 +11,17 @@ SIGN_REQUEST_ACTION = "sign_oca.sign_oca_request_act_window"
 SIGN_REQUEST_FORM = "sign_oca.sign_oca_request_form_view"
 CLINICAL_ROLE = "clinical_management_sign_oca.sign_role_clinical_professional"
 
+# Signature type -> (field on sign.oca.request, module that provides it).
+# The fields are checked dynamically so the authentication modules stay
+# independent from each other and are not a hard dependency of this glue.
+SIGNATURE_AUTH_REQUIREMENTS = {
+    "certificate": (
+        "require_certificate_authentication",
+        "sign_oca_certificate_digital",
+    ),
+    "govbr": ("require_govbr_authentication", "sign_oca_govbr"),
+}
+
 
 class HospitalClinicalReport(models.Model):
     _inherit = "hospital.clinical.report"
@@ -56,9 +67,41 @@ class HospitalClinicalReport(models.Model):
             )
         return partner
 
+    def _professional_signature_type(self):
+        """Return the professional's signature type (image on older installs)."""
+        self.ensure_one()
+        if "signature_type" not in self.professional_id._fields:
+            return "image"
+        return self.professional_id.signature_type or "image"
+
+    def _signature_auth_vals(self, signature_type, request_model):
+        """Map the signature type to the Sign OCA authentication flags."""
+        requirement = SIGNATURE_AUTH_REQUIREMENTS.get(signature_type)
+        if requirement and requirement[0] not in request_model._fields:
+            raise ValidationError(
+                self.env._(
+                    "Signature type '%(type)s' requires the '%(module)s' "
+                    "module to be installed.",
+                    type=signature_type,
+                    module=requirement[1],
+                )
+            )
+        vals = {}
+        for field_name, _module in SIGNATURE_AUTH_REQUIREMENTS.values():
+            if field_name in request_model._fields:
+                vals[field_name] = False
+        if requirement:
+            vals[requirement[0]] = True
+        return vals
+
     def action_send_for_signature(self):
         """Render the clinical report PDF and create a Sign OCA request."""
         self.ensure_one()
+        signature_type = self._professional_signature_type()
+        if signature_type == "certificate" and not self.env.context.get(
+            "skip_certificate_password"
+        ):
+            return self._action_certificate_password("sign")
         partner = self._get_signature_partner()
         role = self.env.ref(CLINICAL_ROLE, raise_if_not_found=False)
         if not role:
@@ -73,18 +116,19 @@ class HospitalClinicalReport(models.Model):
         )
         base_name = (self.name or "clinical_report").replace("/", "-")
         filename = f"{base_name}.pdf"
-        sign_request = self.env["sign.oca.request"].create(
-            {
-                "name": self.name or filename,
-                "filename": filename,
-                "data": base64.b64encode(pdf),
-                "record_ref": f"hospital.clinical.report,{self.id}",
-                "user_id": self.env.user.id,
-                "signer_ids": [
-                    Command.create({"role_id": role.id, "partner_id": partner.id})
-                ],
-            }
-        )
+        request_model = self.env["sign.oca.request"]
+        vals = {
+            "name": self.name or filename,
+            "filename": filename,
+            "data": base64.b64encode(pdf),
+            "record_ref": f"hospital.clinical.report,{self.id}",
+            "user_id": self.env.user.id,
+            "signer_ids": [
+                Command.create({"role_id": role.id, "partner_id": partner.id})
+            ],
+        }
+        vals.update(self._signature_auth_vals(signature_type, request_model))
+        sign_request = request_model.create(vals)
         action = self.env["ir.actions.act_window"]._for_xml_id(SIGN_REQUEST_ACTION)
         action.update(
             {

@@ -110,3 +110,54 @@ class TestClinicalManagementSignOca(BaseCommon):
         request.action_send_signed_request()
         self.assertFalse(self.report.signed_document)
         self.assertEqual(self.report.state, "draft")
+
+    def _send_for_signature(self):
+        """Create a request bypassing the (clinical_management) password gate."""
+        report = self.report.with_context(skip_certificate_password=True)
+        with patch.object(
+            type(self.env["ir.actions.report"]),
+            "_render_qweb_pdf",
+            return_value=(DUMMY_PDF, "pdf"),
+        ):
+            return report.action_send_for_signature()
+
+    def test_certificate_signature_opens_password_wizard(self):
+        self.employee.signature_type = "certificate"
+        action = self.report.action_send_for_signature()
+        self.assertEqual(action["res_model"], "hospital.certificate.password.wizard")
+        self.assertEqual(action["context"]["default_next_action"], "sign")
+        self.assertEqual(action["context"]["default_report_id"], self.report.id)
+
+    def test_image_signature_disables_auth_flags(self):
+        self.employee.signature_type = "image"
+        action = self._send_for_signature()
+        request = self.env["sign.oca.request"].browse(action["res_id"])
+        fields = self.env["sign.oca.request"]._fields
+        if "require_certificate_authentication" in fields:
+            self.assertFalse(request.require_certificate_authentication)
+        if "require_govbr_authentication" in fields:
+            self.assertFalse(request.require_govbr_authentication)
+
+    def test_certificate_signature_enables_certificate_auth(self):
+        self.employee.signature_type = "certificate"
+        fields = self.env["sign.oca.request"]._fields
+        if "require_certificate_authentication" not in fields:
+            with self.assertRaises(ValidationError):
+                self._send_for_signature()
+            return
+        action = self._send_for_signature()
+        request = self.env["sign.oca.request"].browse(action["res_id"])
+        self.assertTrue(request.require_certificate_authentication)
+        self.assertFalse(request.require_govbr_authentication)
+
+    def test_govbr_signature_enables_govbr_auth(self):
+        self.employee.signature_type = "govbr"
+        fields = self.env["sign.oca.request"]._fields
+        if "require_govbr_authentication" not in fields:
+            with self.assertRaises(ValidationError):
+                self._send_for_signature()
+            return
+        action = self._send_for_signature()
+        request = self.env["sign.oca.request"].browse(action["res_id"])
+        self.assertTrue(request.require_govbr_authentication)
+        self.assertFalse(request.require_certificate_authentication)
