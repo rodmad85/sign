@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sign_oca_request_signer_view_form_certificate" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.form.certificate</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_signer_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Digital Certificate Authentication">
+                    <field name="certificate_auth_state" />
+                    <field name="certificate_subject" />
+                    <field name="certificate_issuer" />
+                    <field name="certificate_serial_number" />
+                    <field name="certificate_cpf" />
+                    <field name="certificate_not_after" />
+                    <field name="certificate_verified_on" />
+                    <field name="certificate_error" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
