@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sign_oca_request_signer_view_form_govbr" model="ir.ui.view">
+        <field name="name">sign.oca.request.signer.form.govbr</field>
+        <field name="model">sign.oca.request.signer</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_signer_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="GOV.BR Authentication">
+                    <field name="govbr_auth_state" />
+                    <field name="govbr_sub" />
+                    <field name="govbr_cpf" />
+                    <field name="govbr_trust_level" />
+                    <field name="govbr_amr" />
+                    <field name="govbr_verified_on" />
+                    <field name="govbr_error" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

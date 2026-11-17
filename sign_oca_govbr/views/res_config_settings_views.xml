@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_govbr" model="ir.ui.view">
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sign_oca.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='sign_oca']" position="inside">
+                <block title="GOV.BR Authentication" name="sign_oca_govbr_settings">
+                    <setting>
+                        <field name="sign_oca_govbr_required" />
+                    </setting>
+                    <setting>
+                        <field name="sign_oca_govbr_client_id" />
+                    </setting>
+                    <setting>
+                        <field name="sign_oca_govbr_client_secret" password="True" />
+                    </setting>
+                    <setting>
+                        <field name="sign_oca_govbr_authorize_url" />
+                    </setting>
+                    <setting>
+                        <field name="sign_oca_govbr_token_url" />
+                    </setting>
+                    <setting>
+                        <field name="sign_oca_govbr_userinfo_url" />
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
