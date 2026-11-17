@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="sign_role_clinical_professional" model="sign.oca.role">
+        <field name="name">Healthcare Professional</field>
+        <field name="domain">[]</field>
+        <field name="partner_selection_policy">empty</field>
+    </record>
+</odoo>

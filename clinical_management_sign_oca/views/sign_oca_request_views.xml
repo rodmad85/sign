@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sign_oca_request_view_form_clinical_report" model="ir.ui.view">
+        <field name="name">sign.oca.request.form.clinical.report</field>
+        <field name="model">sign.oca.request</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_form_view" />
+        <field name="arch" type="xml">
+            <field name="record_ref" position="after">
+                <field
+                    name="clinical_report_id"
+                    readonly="1"
+                    invisible="not clinical_report_id"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="sign_oca_request_search_view_clinical_report" model="ir.ui.view">
+        <field name="name">sign.oca.request.search.clinical.report</field>
+        <field name="model">sign.oca.request</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_search_view" />
+        <field name="arch" type="xml">
+            <field name="signer_ids" position="after">
+                <field name="clinical_report_id" />
+            </field>
+        </field>
+    </record>
+</odoo>

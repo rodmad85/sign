@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="clinical_report_view_form_sign" model="ir.ui.view">
+        <field name="name">hospital.clinical.report.form.sign</field>
+        <field name="model">hospital.clinical.report</field>
+        <field
+            name="inherit_id"
+            ref="clinical_management.view_hospital_clinical_report_form"
+        />
+        <field name="arch" type="xml">
+            <field name="professional_id" position="after">
+                <field name="sign_request_count" invisible="1" />
+                <field name="signed_document_filename" invisible="1" />
+            </field>
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_send_for_signature"
+                    string="Request Signature"
+                    type="object"
+                    class="btn-primary"
+                    invisible="sign_request_count > 0 or state != 'draft'"
+                />
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button
+                        class="oe_stat_button"
+                        type="object"
+                        name="action_view_sign_requests"
+                        icon="fa-pencil-square-o"
+                        groups="sign_oca.sign_oca_group_user"
+                        invisible="sign_request_count == 0"
+                    >
+                        <field
+                            name="sign_request_count"
+                            widget="statinfo"
+                            string="Signature Requests"
+                        />
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='free_content']" position="after">
+                <page name="signature" string="Signature">
+                    <group>
+                        <field
+                            name="signed_document"
+                            filename="signed_document_filename"
+                        />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
